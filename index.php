@@ -138,20 +138,13 @@
 
             <!-- Calendar Grid -->
             <div class="p-6">
-                <!-- Days of Week -->
-                <div class="grid grid-cols-7 gap-1 mb-2">
-                    <template x-for="day in daysOfWeek">
-                        <div class="text-center text-sm font-medium text-gray-500 py-2" x-text="day"></div>
-                    </template>
-                </div>
-
                 <!-- Calendar Days -->
-                <div class="grid grid-cols-7 gap-1" style="height: calc(100vh - 280px);">
+                <div class="grid grid-cols-7 gap-2" style="height: calc(100vh - 220px);">
                     <template x-for="day in calendarDays" :key="day.date">
-                        <div class="border border-gray-200 p-2 cursor-pointer hover:bg-gray-50 flex flex-col"
-                             :class="{'bg-blue-50': day.isToday, 'text-gray-400': !day.isCurrentMonth}"
-                             @click="day.isCurrentMonth && openMeetingModal(day.date)">
-                            <span class="text-sm font-medium mb-1" x-text="day.day"></span>
+                        <div class="border border-gray-200 p-3 cursor-pointer hover:bg-gray-50 flex flex-col rounded-lg"
+                             :class="{'bg-blue-50 border-blue-300': day.isToday}"
+                             @click="openMeetingModal(day.date)">
+                            <span class="text-lg font-semibold mb-2" x-text="day.day"></span>
                             <div class="flex flex-wrap">
                                 <template x-for="meeting in day.meetings" :key="meeting.id">
                                     <div class="status-dot"
@@ -406,15 +399,14 @@
                     
                     const firstDay = new Date(this.currentYear, this.currentMonth, 1);
                     const lastDay = new Date(this.currentYear, this.currentMonth + 1, 0);
-                    const startDate = new Date(firstDay);
-                    startDate.setDate(startDate.getDate() - firstDay.getDay());
+                    const daysInMonth = lastDay.getDate();
                     
                     this.calendarDays = [];
                     const today = new Date();
                     
-                    for (let i = 0; i < 42; i++) {
-                        const date = new Date(startDate);
-                        date.setDate(startDate.getDate() + i);
+                    // Only show days from the current month
+                    for (let day = 1; day <= daysInMonth; day++) {
+                        const date = new Date(this.currentYear, this.currentMonth, day);
                         
                         const dayMeetings = this.meetings.filter(meeting => {
                             // Fix date comparison - use formatted date string instead of Date object
@@ -425,8 +417,8 @@
                         
                         this.calendarDays.push({
                             date: date.toISOString().split('T')[0],
-                            day: date.getDate(),
-                            isCurrentMonth: date.getMonth() === this.currentMonth,
+                            day: day,
+                            isCurrentMonth: true,
                             isToday: date.toDateString() === today.toDateString(),
                             meetings: dayMeetings
                         });
