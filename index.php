@@ -11,18 +11,35 @@
         .tooltip {
             position: absolute;
             z-index: 1000;
-            padding: 8px 12px;
-            background: #1f2937;
+            padding: 12px 16px;
             color: white;
-            border-radius: 6px;
-            font-size: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
             white-space: nowrap;
             pointer-events: none;
             opacity: 0;
-            transition: opacity 0.2s;
+            transition: opacity 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-left: 4px solid;
         }
         .tooltip.show {
             opacity: 1;
+        }
+        .tooltip.status-agendada {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border-left-color: #92400e;
+            animation: none !important;
+        }
+        .tooltip.status-em_andamento {
+            background: linear-gradient(135deg, #10b981, #059669);
+            border-left-color: #047857;
+            animation: none !important;
+        }
+        .tooltip.status-concluida {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            border-left-color: #991b1b;
+            animation: none !important;
         }
         .status-dot {
             width: 20px;
@@ -40,7 +57,7 @@
             background-color: #10b981;
             animation: pulse 2s infinite;
         }
-        .status-finalizada { background-color: #ef4444; }
+        .status-concluida { background-color: #ef4444; }
         
         @keyframes pulse {
             0% {
@@ -76,7 +93,7 @@
                     </div>
                     <div class="flex items-center space-x-2">
                         <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-                        <span class="text-gray-600">Finalizada</span>
+                        <span class="text-gray-600">Concluída</span>
                     </div>
                     <div class="flex items-center space-x-2">
                         <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
@@ -138,7 +155,7 @@
                             <div class="flex flex-wrap">
                                 <template x-for="meeting in day.meetings" :key="meeting.id">
                                     <div class="status-dot"
-                                         :class="'status-' + (meeting.status ? meeting.status.toLowerCase().replace(' ', '_') : 'finalizada')"
+                                         :class="'status-' + (meeting.status ? meeting.status.toLowerCase().replace(' ', '_') : 'concluida')"
                                          @click.stop="openMeetingModal(null, meeting.id)"
                                          @mouseenter="showTooltip($event, meeting)"
                                          @mouseleave="hideTooltip()">
@@ -219,7 +236,7 @@
                                 required>
                             <option value="agendada">Agendada</option>
                             <option value="em_andamento">Em andamento</option>
-                            <option value="finalizada">Finalizada</option>
+                            <option value="concluida">Concluída</option>
                         </select>
                     </div>
 
@@ -254,7 +271,7 @@
                             <option value="">Todos</option>
                             <option value="agendada">Agendada</option>
                             <option value="em_andamento">Em andamento</option>
-                            <option value="finalizada">Finalizada</option>
+                            <option value="concluida">Concluída</option>
                         </select>
                     </div>
                     <div>
@@ -307,7 +324,7 @@
                                               :class="{
                                                   'bg-yellow-100 text-yellow-800': meeting.status === 'agendada',
                                                   'bg-green-100 text-green-800': meeting.status === 'em_andamento',
-                                                  'bg-red-100 text-red-800': meeting.status === 'finalizada'
+                                                  'bg-red-100 text-red-800': meeting.status === 'concluida'
                                               }"
                                               x-text="meeting.status">
                                         </span>
@@ -592,15 +609,30 @@
 
                 showTooltip(event, meeting) {
                     const tooltip = document.getElementById('tooltip');
+                    
+                    // Remove existing status classes
+                    tooltip.classList.remove('status-agendada', 'status-em_andamento', 'status-concluida');
+                    
+                    // Add appropriate status class
+                    const statusClass = `status-${meeting.status || 'concluida'}`;
+                    tooltip.classList.add(statusClass);
+                    
+                    // Create status badge
+                    const statusText = {
+                        'agendada': 'Agendada',
+                        'em_andamento': 'Em andamento', 
+                        'concluida': 'Concluída'
+                    }[meeting.status] || 'Concluída';
+                    
                     tooltip.innerHTML = `
-                        <strong>${meeting.assunto}</strong><br>
-                        ${meeting.hora_inicio} - ${meeting.hora_fim}<br>
-                        Status: ${meeting.status}
+                        <div style="margin-bottom: 6px; font-weight: 600;">${meeting.assunto}</div>
+                        <div style="margin-bottom: 4px; opacity: 0.9;">🕐 ${meeting.hora_inicio} - ${meeting.hora_fim}</div>
+                        <div style="background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 12px; font-size: 11px; display: inline-block;">${statusText}</div>
                     `;
                     
                     const rect = event.target.getBoundingClientRect();
                     tooltip.style.left = rect.left + 'px';
-                    tooltip.style.top = (rect.top - tooltip.offsetHeight - 5) + 'px';
+                    tooltip.style.top = (rect.top - tooltip.offsetHeight - 8) + 'px';
                     tooltip.classList.add('show');
                 },
 

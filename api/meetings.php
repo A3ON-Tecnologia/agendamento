@@ -100,8 +100,8 @@ function getMeetings($db) {
         $stmtUpdate1 = $db->prepare($updateInProgress);
         $stmtUpdate1->execute([$currentDate, $currentTime, $currentTime]);
         
-        // Update to "finalizada" (lowercase) - 1 minute after end time
-        $updateFinished = "UPDATE reunioes SET status = 'finalizada' 
+        // Update to "concluida" (lowercase) - 1 minute after end time
+        $updateFinished = "UPDATE reunioes SET status = 'concluida' 
                          WHERE ((data_reuniao = ? AND ADDTIME(hora_fim, '00:01:00') <= ?) OR data_reuniao < ?) 
                          AND status IN ('agendada', 'em_andamento')";
         $stmtUpdate2 = $db->prepare($updateFinished);
@@ -110,12 +110,12 @@ function getMeetings($db) {
         // Fix any meetings with empty status or inconsistent status values
         $fixEmptyStatus = "UPDATE reunioes SET status = 
                           CASE 
-                            WHEN data_reuniao < ? THEN 'finalizada'
-                            WHEN data_reuniao = ? AND ADDTIME(hora_fim, '00:01:00') <= ? THEN 'finalizada'
+                            WHEN data_reuniao < ? THEN 'concluida'
+                            WHEN data_reuniao = ? AND ADDTIME(hora_fim, '00:01:00') <= ? THEN 'concluida'
                             WHEN data_reuniao = ? AND hora_inicio <= ? AND hora_fim > ? THEN 'em_andamento'
                             ELSE 'agendada'
                           END
-                          WHERE status = '' OR status IS NULL OR status = 'concluida'";
+                          WHERE status = '' OR status IS NULL OR status = 'finalizada'";
         $stmtFix = $db->prepare($fixEmptyStatus);
         $stmtFix->execute([$currentDate, $currentDate, $currentTime, $currentDate, $currentTime, $currentTime]);
 
